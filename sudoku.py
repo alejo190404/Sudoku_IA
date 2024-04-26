@@ -95,39 +95,39 @@ def lista_a_matriz(lista, n):
 
     return matriz
 
-def increment_number(digits, protected_indices):
+def incrementar_numero(digitos, indices_protegidos):
     # Caso base: si la lista está vacía, devuelve [1]
-    if not digits:
+    if not digitos:
         return [1]
 
     # Toma el último dígito de la lista y su índice
-    last_index = len(digits) - 1
-    last_digit = digits[-1]
+    u_index = len(digitos) - 1
+    u_digito = digitos[-1]
 
     # Si el último índice está en la lista de índices protegidos
-    if last_index in protected_indices:
+    if u_index in indices_protegidos:
         # Llama recursivamente a la función con la lista restante
         # (excepto el último dígito)
-        new_digits = increment_number(digits[:-1], protected_indices)
+        new_digitos = incrementar_numero(digitos[:-1], indices_protegidos)
 
         # Concatena el último dígito al final de la nueva lista devuelta
-        new_digits.append(last_digit)
-        return new_digits
+        new_digitos.append(u_digito)
+        return new_digitos
 
     # Si el último dígito es menor que 9, lo incrementa y devuelve la lista actualizada
-    if last_digit < 9:
-        digits[-1] = last_digit + 1
-        return digits
+    if u_digito < 9:
+        digitos[-1] = u_digito + 1
+        return digitos
 
     # Si el último dígito es 9, lo establece en 0 y llama recursivamente a la función
     # con la lista restante (excepto el último dígito)
     else:
-        digits[-1] = 0
-        new_digits = increment_number(digits[:-1], protected_indices)
+        digitos[-1] = 0
+        new_digitos = incrementar_numero(digitos[:-1], indices_protegidos)
 
         # Concatena el 0 al final de la nueva lista devuelta por la llamada recursiva
-        new_digits.append(0)
-        return new_digits
+        new_digitos.append(0)
+        return new_digitos
 
 def encontrar_no_vacios(tablero):
     lista = []
