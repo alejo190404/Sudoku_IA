@@ -146,7 +146,7 @@ def solucion1_FB(tablero):
     impresion(tablero)
     while(not(es_tablero_valido(tablero))):
         filas = unir_filas(tablero)
-        filasIncrement = increment_number(filas, lista)
+        filasIncrement = incrementar_numero(filas, lista)
         tablero = lista_a_matriz(filasIncrement, 9)
 
 
