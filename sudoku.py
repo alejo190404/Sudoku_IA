@@ -91,58 +91,57 @@ def solucion2_BT(tablero):
     return False
 
 
-def eliminar_dominios(tablero, fila, col, num, dominios):
-    # Eliminar num de los dominios de las celdas en la misma fila, columna y subcuadrícula
-    for i in range(9):
-        dominios[fila*9 + i].discard(num)  # Fila
-        dominios[i*9 + col].discard(num)  # Columna
-        
-        # Subcuadrícula
-        cuad_fila, cuad_col = 3 * (fila // 3), 3 * (col // 3)
-        for r in range(cuad_fila, cuad_fila + 3):
-            for c in range(cuad_col, cuad_col + 3):
-                dominios[r*9 + c].discard(num)
-
 def solucion3_BT_FC(tablero):
-    # Inicializar dominios para todas las celdas vacías
-    dominios = {i: set(range(1, 10)) for i in range(81) if tablero[i//9][i%9] == 0}
-    
-    # Función recursiva con forward checking
+    dominios = {i: set(range(1, 10)) if tablero[i // 9][i % 9] == 0 else {tablero[i // 9][i % 9]} for i in range(81)}
+
+    def eliminar_dominios(fila, col, num):
+        afectados = set()
+        for i in range(9):
+            indices = [
+                (fila, i),  # Fila
+                (i, col),  # Columna
+                (3 * (fila // 3) + i // 3, 3 * (col // 3) + i % 3)  # Subcuadrícula
+            ]
+            for f, c in indices:
+                idx = f * 9 + c
+                if num in dominios[idx] and len(dominios[idx]) > 1:  # Solo modificar si hay más de una opción
+                    dominios[idx].remove(num)
+                    afectados.add((f, c))
+                    if not dominios[idx]:  # Fallo si algún dominio está vacío
+                        return False, set()
+        return True, afectados
+
+    def restaurar_dominios(afectados, num):
+        for f, c in afectados:
+            dominios[f * 9 + c].add(num)
+
+
     def backtrack():
-        # Si todos los dominios son vacíos, hemos asignado un valor a cada celda
-        if all(tablero[i//9][i%9] != 0 for i in range(81)):
+        # Encuentra el índice de la celda vacía con el menor número de valores posibles en su dominio (MRV Heuristic).
+        idx = min((i for i in range(81) if tablero[i // 9][i % 9] == 0), key=lambda x: len(dominios[x]), default=None)
+
+        if idx is None:  # No hay más espacios vacíos, lo que significa que el Sudoku está resuelto
             return True
-        
-        # Encontrar la próxima celda vacía con menos opciones en su dominio
-        celda_vacia, min_dominio = min(((i, dominios[i]) for i in dominios if tablero[i//9][i%9] == 0),
-                                        key=lambda x: len(x[1]), default=(None, None))
-        if celda_vacia is None:
-            return False
-        
-        fila, col = divmod(celda_vacia, 9)
-        
-        # Copia de seguridad de los dominios antes de cualquier cambio
-        backup_dominios = dominios.copy()
-        
-        # Probar cada opción en el dominio de la celda
-        for num in min_dominio:
+
+        fila, col = idx // 9, idx % 9  # Convertir índice lineal en coordenadas de fila y columna
+
+        for num in list(dominios[fila * 9 + col]):  # Iterar sobre una copia porque el conjunto puede cambiar
             if movimiento_valido(tablero, fila, col, num):
                 tablero[fila][col] = num
-                eliminar_dominios(tablero, fila, col, num, dominios)
-                
-                # Si después de la asignación, ningún dominio es vacío, continuar con backtracking
-                if all(dominios[i] for i in dominios):
+                success, afectados = eliminar_dominios(fila, col, num)
+                if success:
                     if backtrack():
                         return True
-                
-                # Si la asignación no condujo a una solución, restaurar dominios y hacer backtrack
                 tablero[fila][col] = 0
-                dominios = backup_dominios.copy()
-        
+                restaurar_dominios(afectados, num)
+
         return False
 
-    # Iniciar backtracking
+
     return backtrack()
+
+# Usar el código en el entorno de prueba y asegurarse de que el tablero inicial se establece correctamente
+
 
 
 
@@ -167,10 +166,39 @@ impresion(tablero)
 solucion1_FB(tablero)
 print("\nSolución usando fuerza bruta:")
 impresion(tablero)
+
+tablero = [
+    [0, 0, 3, 0, 2, 0, 6, 0, 0],
+    [9, 0, 0, 3, 0, 5, 0, 0, 1],
+    [0, 0, 1, 8, 0, 6, 4, 0, 0],
+    [0, 0, 8, 1, 0, 2, 9, 0, 0],
+    [7, 0, 0, 0, 0, 0, 0, 0, 8],
+    [0, 0, 6, 7, 0, 8, 2, 0, 0],
+    [0, 0, 2, 6, 0, 9, 5, 0, 0],
+    [8, 0, 0, 2, 0, 3, 0, 0, 9],
+    [0, 0, 5, 0, 1, 0, 3, 0, 0]]
+print("\nTablero inicial:")
+impresion(tablero)
 solucion2_BT(tablero)
 print("\nSolución usando backtracking:")
 impresion(tablero)
+
+print("\nTablero inicial:")
+impresion(tablero)
 print("\nSolución usando backtracking con forward checking:")
+
+tablero = [
+    [0, 0, 3, 0, 2, 0, 6, 0, 0],
+    [9, 0, 0, 3, 0, 5, 0, 0, 1],
+    [0, 0, 1, 8, 0, 6, 4, 0, 0],
+    [0, 0, 8, 1, 0, 2, 9, 0, 0],
+    [7, 0, 0, 0, 0, 0, 0, 0, 8],
+    [0, 0, 6, 7, 0, 8, 2, 0, 0],
+    [0, 0, 2, 6, 0, 9, 5, 0, 0],
+    [8, 0, 0, 2, 0, 3, 0, 0, 9],
+    [0, 0, 5, 0, 1, 0, 3, 0, 0]]
+print("\nTablero inicial:")
+impresion(tablero)
 if solucion3_BT_FC(tablero):
     print("Tablero resuelto:")
     impresion(tablero)
