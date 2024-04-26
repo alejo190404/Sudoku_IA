@@ -45,25 +45,109 @@ def impresion(tablero):
             print("-------------------------")
 
 
+def es_tablero_valido(tablero):
+    # Verifica si hay espacios vacíos
+    for fila in tablero:
+        if 0 in fila:
+            return False
+
+    # Verifica filas
+    for fila in tablero:
+        if not es_valida(fila):
+            return False
+
+    # Verifica columnas
+    for col in range(9):
+        columna = [fila[col] for fila in tablero]
+        if not es_valida(columna):
+            return False
+
+    # Verifica cajas
+    for fila_caja in range(0, 9, 3):
+        for col_caja in range(0, 9, 3):
+            caja = [tablero[fila][col]
+                    for fila in range(fila_caja, fila_caja + 3)
+                    for col in range(col_caja, col_caja + 3)]
+            if not es_valida(caja):
+                return False
+
+    return True
+
+def es_valida(lista):
+    # Verifica que todos los elementos sean únicos y estén en el rango correcto
+    elementos = [elemento for elemento in lista if elemento != 0]
+    return len(elementos) == len(set(elementos)) and set(elementos).issubset(set(range(1, 10)))
+
+def unir_filas(matriz):
+    # Une en una fila, todas las filas de una matriz
+    filas_unidas = []
+    for fila in matriz:
+        filas_unidas.extend(fila)
+
+    return filas_unidas
+
+def lista_a_matriz(lista, n):
+    # Transforma una lista y la separa en una matriz nxn
+    matriz = []
+    for i in range(n):
+        fila = lista[i*n:(i+1)*n]
+        matriz.append(fila)
+
+    return matriz
+
+def increment_number(digits, protected_indices):
+    # Caso base: si la lista está vacía, devuelve [1]
+    if not digits:
+        return [1]
+
+    # Toma el último dígito de la lista y su índice
+    last_index = len(digits) - 1
+    last_digit = digits[-1]
+
+    # Si el último índice está en la lista de índices protegidos
+    if last_index in protected_indices:
+        # Llama recursivamente a la función con la lista restante
+        # (excepto el último dígito)
+        new_digits = increment_number(digits[:-1], protected_indices)
+
+        # Concatena el último dígito al final de la nueva lista devuelta
+        new_digits.append(last_digit)
+        return new_digits
+
+    # Si el último dígito es menor que 9, lo incrementa y devuelve la lista actualizada
+    if last_digit < 9:
+        digits[-1] = last_digit + 1
+        return digits
+
+    # Si el último dígito es 9, lo establece en 0 y llama recursivamente a la función
+    # con la lista restante (excepto el último dígito)
+    else:
+        digits[-1] = 0
+        new_digits = increment_number(digits[:-1], protected_indices)
+
+        # Concatena el 0 al final de la nueva lista devuelta por la llamada recursiva
+        new_digits.append(0)
+        return new_digits
+
+def encontrar_no_vacios(tablero):
+    lista = []
+    for i in range(9):
+        for j in range(9):
+            if tablero[i][j] != 0:
+                lista.append(i + (j * 10))
+    return lista
+
 def solucion1_FB(tablero):
-    vacio = encontrar_espacio_vacio(tablero)
-
-    if vacio[0] == None:
-        return True
-    
-    i, j = vacio
-
-    for num in range(1, 10):
-        if movimiento_valido(tablero, i, j, num):
-            tablero[i][j] = num
-
-            if solucion1_FB(tablero):
-                return True
-
-            tablero[i][j] = 0
-
-    return False
-
+    lista = encontrar_no_vacios(tablero)
+    for i in range(9):
+        for j in range(9):
+            if tablero[i][j] == 0:
+                tablero[i][j] = 1
+    impresion(tablero)
+    while(not(es_tablero_valido(tablero))):
+        filas = unir_filas(tablero)
+        filasIncrement = increment_number(filas, lista)
+        tablero = lista_a_matriz(filasIncrement, 9)
 
 
 
@@ -163,9 +247,10 @@ tablero = [
 print("Tablero inicial:")
 impresion(tablero)
 
-solucion1_FB(tablero)
-print("\nSolución usando fuerza bruta:")
-impresion(tablero)
+#No se ejecuta por fuerza bruta, pues demoraría 480901057067040820250070093540030076029564130130090045370080014014050760690407082 operaciones
+#solucion1_FB(tablero)
+#print("\nSolución usando fuerza bruta:")
+#impresion(tablero)
 
 tablero = [
     [0, 0, 3, 0, 2, 0, 6, 0, 0],
